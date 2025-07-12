@@ -1,8 +1,8 @@
 use clap::{arg, command};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use std::error::Error;
-use std::fs::{write, File};
+use std::fs::{File, write};
 use std::io::BufReader;
 use std::path::Path;
 use std::process::Command;
@@ -66,14 +66,29 @@ fn write_config(config_path: &Path, settings: &MonitorSettings) {
 }
 
 fn exec_ddcutil(settings: &MonitorSettings) {
-    Command::new("ddcutil")
-        .args(["setvcp", "10", &settings.brightness.to_string()])
-        .output()
-        .expect("failed to execute ddcutil brightness");
-    Command::new("ddcutil")
-        .args(["setvcp", "12", &settings.contrast.to_string()])
-        .output()
-        .expect("failed to execute ddcutil contrast");
+    let num_displays = 2;
+    for i in 1..num_displays + 1 {
+        Command::new("ddcutil")
+            .args([
+                "-d",
+                &i.to_string(),
+                "setvcp",
+                "10",
+                &settings.brightness.to_string(),
+            ])
+            .output()
+            .expect("failed to execute ddcutil brightness");
+        Command::new("ddcutil")
+            .args([
+                "-d",
+                &i.to_string(),
+                "setvcp",
+                "12",
+                &settings.contrast.to_string(),
+            ])
+            .output()
+            .expect("failed to execute ddcutil contrast");
+    }
 }
 
 fn main() {
